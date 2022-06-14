@@ -35,6 +35,7 @@
             italic: true,
             underline: true,
 
+            emoji: true,
             // text alignment
             leftAlign: true,
             centerAlign: true,
@@ -135,6 +136,7 @@
                 'bold': 'Bold',
                 'italic': 'Italic',
                 'underline': 'Underline',
+                'emoji': 'Emoji',
                 'alignLeft': 'Align left',
                 'alignCenter': 'Align centered',
                 'alignRight': 'Align right',
@@ -203,6 +205,11 @@
                 "data-command": "underline",
                 "title": settings.translations.underline,
                 html: '<span class="fa fa-underline"></span>'
+            }), // underline
+            $btnEmoji = $('<a />', {
+                class: "richText-btn",
+                "title": settings.translations.emoji,
+                html: '&#128512;'
             }), // underline
             $btnJustify = $('<a />', {
                 class: "richText-btn",
@@ -326,6 +333,37 @@
         var historyPosition = [];
         historyPosition[editorID] = 0;
 
+        /* list dropdown for emojis */
+        var $emojis = $dropdownList.clone();
+        var emojiHTML = '';
+        emojiHTML += '<li class="inline"><a data-command="insertEmoji" data-option="128169">&#128169;</a></li>';
+        for (i=128512;i<=128567;i++) {
+            emojiHTML += '<li class="inline"><a data-command="insertEmoji" data-option="' + i + '">&#' + i + ';</a></li>';
+        }
+        for (i=128577;i<=128591;i++) {
+            emojiHTML += '<li class="inline"><a data-command="insertEmoji" data-option="' + i + '">&#' + i + ';</a></li>';
+        }
+        for (i=128640;i<=128711;i++) {
+            emojiHTML += '<li class="inline"><a data-command="insertEmoji" data-option="' + i + '">&#' + i + ';</a></li>';
+        }
+        for (i=128715;i<=128722;i++) {
+            emojiHTML += '<li class="inline"><a data-command="insertEmoji" data-option="' + i + '">&#' + i + ';</a></li>';
+        }
+        emojiHTML += '<li class="inline"><a data-command="insertEmoji" data-option="9823">&#9823;</a></li>';
+        emojiHTML += '<li class="inline"><a data-command="insertEmoji" data-option="9855">&#9855;</a></li>';
+        emojiHTML += '<li class="inline"><a data-command="insertEmoji" data-option="9875">&#9875;</a></li>';
+        emojiHTML += '<li class="inline"><a data-command="insertEmoji" data-option="9899">&#9899;</a></li>';
+        for (i=128756;i<=128764;i++) {
+            emojiHTML += '<li class="inline"><a data-command="insertEmoji" data-option="' + i + '">&#' + i + ';</a></li>';
+        }
+        for (i=129292;i<=129431;i++) {
+            emojiHTML += '<li class="inline"><a data-command="insertEmoji" data-option="' + i + '">&#' + i + ';</a></li>';
+        }
+        for (i=129488;i<=129510;i++) {
+            emojiHTML += '<li class="inline"><a data-command="insertEmoji" data-option="' + i + '">&#' + i + ';</a></li>';
+        }
+        $emojis.html(emojiHTML);
+        $btnEmoji.append($dropdownOuter.clone().append($emojis.prepend($dropdownClose.clone())));
         /* list dropdown for titles */
         var $titles = $dropdownList.clone();
         $titles.append($('<li />', {html: '<a data-command="formatBlock" data-option="h1">' + settings.translations.title + ' #1</a>'}));
@@ -578,6 +616,10 @@
                 $toolbarList.append($toolbarElement.clone().append($btnUnderline));
             }
 
+            if (settings.emoji === true) {
+                $toolbarList.append($toolbarElement.clone().append($btnEmoji));
+            }
+
             /* align */
             if (settings.leftAlign === true) {
                 $toolbarList.append($toolbarElement.clone().append($btnLeftAlign));
@@ -740,7 +782,7 @@
                     class: 'richText-help-popup',
                     style: 'position:absolute;top:0;right:0;bottom:0;left:0;background-color: rgba(0,0,0,0.3);'
                 });
-                var $inner = $('<div />', {style: 'position:relative;margin:60px auto;padding:20px;background-color:#FAFAFA;width:70%;font-family:Calibri,Verdana,Helvetica,sans-serif;font-size:small;'});
+                var $inner = $('<div />', {style: ''});
                 var $content = $('<div />', {html: '<span id="closeHelp" style="display:block;position:absolute;top:0;right:0;padding:10px;cursor:pointer;" title="' + settings.translations.close + '"><span class="fa fa-times"></span></span>'});
                 $content.append('<h3 style="margin:0;">RichText</h3>');
                 $content.append('<hr><br>Powered by <a href="https://github.com/webfashionist/RichText" target="_blank">webfashionist/RichText</a> (Github) <br>License: <a href="https://github.com/webfashionist/RichText/blob/master/LICENSE" target="_blank">AGPL-3.0</a>');
@@ -1224,6 +1266,8 @@
         $(document).on("click", function (event) {
             var $clickedElement = $(event.target);
 
+            // console.log($clickedElement.prop('class'));
+
             if ($clickedElement.parents('.richText-toolbar').length === 0) {
                 // element not in toolbar
                 // ignore
@@ -1236,6 +1280,24 @@
             } else if ($clickedElement.parent().hasClass("richText-dropdown-close")) {
                 // closing dropdown by clicking on the close button
                 $('.richText-toolbar li').removeClass("is-selected");
+            /*
+            } else if ($clickedElement.parent('a').hasClass('richText-btn') && $clickedElement.parent('a').children('.richText-dropdown-outer').length > 0) {
+                // opening dropdown by clicking on toolbar button
+                $clickedElement.parent('a').parent('li').addClass("is-selected");
+
+                if ($clickedElement.parent('a').children('.fa,svg').hasClass("fa-link")) {
+                    // put currently selected text in URL form to replace it
+                    restoreSelection(editorID, false, true);
+                    var selectedText = getSelectedText();
+                    $clickedElement.parent('a').find("input#urlText").val('');
+                    $clickedElement.parent('a').find("input#url").val('');
+                    if (selectedText) {
+                        $clickedElement.parent('a').find("input#urlText").val(selectedText);
+                    }
+                } else if ($clickedElement.parent('a').hasClass("fa-image")) {
+                    // image
+                }                
+            */
             } else if ($clickedElement.hasClass("richText-btn") && $(event.target).children('.richText-dropdown-outer').length > 0) {
                 // opening dropdown by clicking on toolbar button
                 $clickedElement.parent('li').addClass("is-selected");
@@ -1355,6 +1417,9 @@
             if (command === "heading" && getSelectedText()) {
                 // IE workaround
                 pasteHTMLAtCaret('<' + option + '>' + getSelectedText() + '</' + option + '>');
+            } else if (command === "insertEmoji") {
+            	if (!($('#' + editorID).is(':focus'))) $('#' + editorID).focus();
+                pasteHTMLAtCaret('<span>&#' + option + ';</span>');
             } else if (command === "fontSize" && parseInt(option) > 0) {
                 var selection = getSelectedText();
                 selection = (selection + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1' + '<br>' + '$2');
@@ -1706,15 +1771,17 @@
             var maxLength = parseInt($editor.data('maxlength'));
             var content = $editorInner.text();
             var percentage = (content.length / maxLength) * 100;
-            if (percentage > 99) {
-                color = 'red';
-            } else if (percentage >= 90) {
-                color = 'orange';
+            if (percentage > 95) {
+                color = '#ff6666';
+            } else if (percentage >= 75) {
+                color = '#ffaa00';
+            } else if (percentage >= 40) {
+                color = '#ffff00';
             } else {
-                color = 'black';
+                color = 'var(--font-color)';
             }
 
-            $editor.find('.richText-length').html('<span class="' + color + '">' + content.length + '</span>/' + maxLength);
+            $editor.find('.richText-length').html('<span style="color: ' + color + ';">' + content.length + '</span> / ' + maxLength);
 
             if (content.length > maxLength) {
                 // content too long
@@ -1799,6 +1866,27 @@
                 restoreSelection((id ? id : savedSelection.editorID));
             }
         }
+
+function insertAtCursor(myField, myValue) {
+    //IE support
+    if (document.selection) {
+        myField.focus();
+        sel = document.selection.createRange();
+        sel.text = myValue;
+    }
+    //MOZILLA and others
+    else if (myField.selectionStart || myField.selectionStart == '0') {
+        var startPos = myField.selectionStart;
+        var endPos = myField.selectionEnd;
+        myField.value = myField.value.substring(0, startPos)
+            + myValue
+            + myField.value.substring(endPos, myField.value.length);
+        myField.selectionStart = startPos + myValue.length;
+        myField.selectionEnd = startPos + myValue.length;
+    } else {
+        myField.value += myValue;
+    }
+}
 
         /**
          * Paste HTML at caret position
